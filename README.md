@@ -100,7 +100,7 @@ Untuk memulai proyek Nest.js, ikuti langkah-langkah berikut:
 1. **Clone repositori**:
     bash
    ```
-    git clone https://github.com/basohamzah24/LAB-BACKEND
+    git clone https://github.com/kazzenaazalen/lab-backend
    ```
 
     Masuk ke Direktori Proyek
