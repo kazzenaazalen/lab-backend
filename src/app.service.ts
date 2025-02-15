@@ -8,6 +8,8 @@ import { JwtService } from '@nestjs/jwt';
 import { Prisma } from '@prisma/client';
 import  PrismaService from './prisma';
 import { User } from './entity/user.entity';
+import { extname, join } from 'path';
+import { existsSync, mkdirSync, rmSync, writeFileSync } from 'fs';
 
 
 @Injectable()
@@ -15,6 +17,69 @@ export class AppService {
 
   constructor(private readonly jwtService: JwtService,) {
 
+  }
+
+  async cariMahasiswa(filters: { nama?: string }) {
+    const where: any = {};
+
+    if (filters.nama) {
+      where.nama = { contains: filters.nama };
+    }
+    return await prisma.mahasiswa.findMany({where});
+}
+
+  async uploadMahasiswaFoto(file: Express.Multer.File, nim : string)
+  {
+    const mahasiswa = await prisma.mahasiswa.findFirst({
+      where : {
+        nim
+      }
+    })
+
+    if(!mahasiswa) throw new NotFoundException("Mahasiswa Tidak Ditemukan")
+
+    if(mahasiswa.foto_profil) {
+      const filePath = `../upload/${mahasiswa.foto_profil}`;
+      if(existsSync(filePath)) {
+        rmSync(filePath)
+      }
+    }
+
+    const uploadPath = join (__dirname, '..', 'upload');
+    if (!existsSync(uploadPath)) {
+      mkdirSync(uploadPath);
+    }
+
+    const fileExt = extname (file.originalname);
+    const baseFilename = mahasiswa.nim;
+    const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9);
+    const filename = `${baseFilename}-${uniqueSuffix}${fileExt}`;
+    const filePath = `${uploadPath}/${filename}`;
+
+    writeFileSync (filePath, file.buffer);
+    await prisma.mahasiswa.update({
+      where : {
+        nim
+      },
+      data : {
+        foto_profil : filename
+      },
+    })
+
+    return {filename, path : filePath};
+
+  }
+
+  async getMahasiswaFoto(nim : string) {
+    const mahasiswa = await prisma.mahasiswa.findFirst({
+      where : {
+        nim
+      }
+    })
+
+    if(!mahasiswa) throw new NotFoundException("Mahasiswa Tidak Ditemukan")
+
+    return mahasiswa.foto_profil;
   }
 
   async login(data : RegisterUserDto){

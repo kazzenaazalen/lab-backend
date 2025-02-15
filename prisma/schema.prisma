@@ -19,6 +19,8 @@ model Mahasiswa {
   kelas String
   jurusan String
   jenis_kelamin Jenis_Kelamin
+  foto_profil String?
+  
 }
 
 enum Jenis_Kelamin {
@@ -30,9 +32,11 @@ model user {
   id Int @id @default(autoincrement())
   username String @unique
   password String
-  role Role
-
+  role Role @default(user)
   create_at DateTime @default(now())  
+  foto_profil String?
+
+ 
 }
 enum Role {
   user
