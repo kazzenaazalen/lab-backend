@@ -172,13 +172,20 @@ export class AppService {
 
   }
 
-  async addMahasiswa(data : CreateMahasiswaDTO) {
-    await prisma.mahasiswa.create({ data
-    })
-
-    return await prisma.mahasiswa.findMany()
-  }
-
+  async addMahasiswa(data: CreateMahasiswaDTO) {
+    // Cek apakah NIM sudah ada di database
+    const existingMahasiswa = await prisma.mahasiswa.findUnique({
+       where: { nim: data.nim }
+    });
+ 
+    if (existingMahasiswa) {
+       throw new BadRequestException("Mahasiswa dengan NIM ini sudah ada");
+    }
+ 
+    await prisma.mahasiswa.create({ data });
+ 
+    return await prisma.mahasiswa.findMany();
+ }
   async deleteMahasiswa(nim : string) {
     const mahasiswa = await prisma.mahasiswa.findFirst({
       where : {
